@@ -5,6 +5,8 @@ import time
 from pprint import pprint
 
 MAX_MANA_COST = 12
+MAX_TEXT_LENGTH = 100
+TEXT_DIV = 5
 
 class Card:
   def __init__(self, name):
@@ -23,6 +25,48 @@ class Card:
     self.cmc = -1
     self.colors = []
     self.types = []
+    self.textLength = -1
+
+def textLength_analysis(cards):
+  #modulus text length by 5 to create buckets
+  wTextLen = [0] * int(MAX_TEXT_LENGTH / TEXT_DIV); 
+  bTextLen = [0] * int(MAX_TEXT_LENGTH / TEXT_DIV); 
+  uTextLen = [0] * int(MAX_TEXT_LENGTH / TEXT_DIV); 
+  rTextLen = [0] * int(MAX_TEXT_LENGTH / TEXT_DIV); 
+  gTextLen = [0] * int(MAX_TEXT_LENGTH / TEXT_DIV); 
+  cTextLen = [0] * int(MAX_TEXT_LENGTH / TEXT_DIV); 
+  for card in cards:
+    if len(card.colors) == 1:
+      if card.colors[0] == "White":
+        wTextLen[int(card.textLength / TEXT_DIV)] += 1 
+      elif card.colors[0] == "Black":  
+        bTextLen[int(card.textLength / TEXT_DIV)] += 1 
+      elif card.colors[0] == "Blue":  
+        uTextLen[int(card.textLength / TEXT_DIV)] += 1 
+      elif card.colors[0] == "Red":  
+        rTextLen[int(card.textLength / TEXT_DIV)] += 1 
+      elif card.colors[0] == "Green":  
+        gTextLen[int(card.textLength / TEXT_DIV)] += 1 
+    else:
+      #colorless or multicolored
+      cTextLen[int(card.textLength / TEXT_DIV)] += 1 
+  
+  with open("textLengthAnalysis.dat", 'w') as outfile:
+    for i in range(int(MAX_TEXT_LENGTH / TEXT_DIV)):
+      outfile.write(str(i * TEXT_DIV))
+      outfile.write("\t")
+      outfile.write(str(wTextLen[i]))
+      outfile.write("\t")
+      outfile.write(str(uTextLen[i]))
+      outfile.write("\t")
+      outfile.write(str(bTextLen[i]))
+      outfile.write("\t")
+      outfile.write(str(rTextLen[i]))
+      outfile.write("\t")
+      outfile.write(str(gTextLen[i]))
+      outfile.write("\t")
+      outfile.write(str(cTextLen[i]))
+      outfile.write("\n")
 
 def color_analysis(cards):
   wManaCost = [0] * MAX_MANA_COST
@@ -322,7 +366,7 @@ def parse_json(card,output):
   cardText = output['cards'][0]
   card.types = cardText['types']
   card.cmc = int(cardText['cmc'])
-  
+  card.textLength = len(cardText['text'].split())
   try:
     card.colors = cardText['colors']
   except KeyError:
@@ -381,3 +425,4 @@ creature_analysis(cards)
 instant_analysis(cards)
 sorcery_analysis(cards)
 flying_analysis(cards)
+textLength_analysis(cards)
