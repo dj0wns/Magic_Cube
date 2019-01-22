@@ -353,7 +353,8 @@ def read_in_cards(fpath,cards):
 
 
 def card_lookup(card):
-  url = "https://api.magicthegathering.io/v1/cards?name=\"" + card.name + "\""
+  name = card.name.replace("'","%27").replace(" ","%20");
+  url = "https://api.magicthegathering.io/v1/cards?name=" + name
   response = requests.get(url).text
   output = json.loads(response)
   #pprint(output)
@@ -366,7 +367,12 @@ def parse_json(card,output):
   cardText = output['cards'][0]
   card.types = cardText['types']
   card.cmc = int(cardText['cmc'])
-  card.textLength = len(cardText['text'].split())
+  try:   
+    card.textLength = len(cardText['text'].split())
+  except KeyError:
+    card.textLength = 0;
+    print("Card \"", card.name, "\" has empty text");
+
   try:
     card.colors = cardText['colors']
   except KeyError:
@@ -383,23 +389,23 @@ def parse_json(card,output):
       card.power = int(cardText['power'])
     except:
       pass
-    
-    if re.match('.*[Ff]lying',cardText['text']):
-      card.flying = True
-    if re.match('.*[Rr]each',cardText['text']):
-      card.reach = True
-    if re.match('.*[Dd]efender',cardText['text']):
-      card.defender = True
-    if re.match('.*[Ff]irst [Ss]trike',cardText['text']):
-      card.firststrike = True
-    if re.match('.*[Dd]ouble [Ss]trike',cardText['text']):
-      card.doublestrike = True
-    if re.match('.*[Mm]enace',cardText['text']):
-      card.menace = True
-    if re.match('.*[Tt]rample',cardText['text']):
-      card.trample = True
-    if re.match('.*[Hh]aste',cardText['text']):
-      card.haste = True
+    if card.textLength > 0 : 
+      if re.match('.*[Ff]lying',cardText['text']):
+        card.flying = True
+      if re.match('.*[Rr]each',cardText['text']):
+        card.reach = True
+      if re.match('.*[Dd]efender',cardText['text']):
+        card.defender = True
+      if re.match('.*[Ff]irst [Ss]trike',cardText['text']):
+        card.firststrike = True
+      if re.match('.*[Dd]ouble [Ss]trike',cardText['text']):
+        card.doublestrike = True
+      if re.match('.*[Mm]enace',cardText['text']):
+        card.menace = True
+      if re.match('.*[Tt]rample',cardText['text']):
+        card.trample = True
+      if re.match('.*[Hh]aste',cardText['text']):
+        card.haste = True
 
 cards = []
 read_in_cards("../Cards/White",cards)
